@@ -14,7 +14,7 @@ In this demo we will create a nginx server in the namespace 'nginx' which will e
 
 Before deploying the NGINX server we will need to provide a configuration to expose the metrics from the server. The configuration needs to be stored at '/etc/nginx/conf.d/nginx.conf' within the pod.
 
-'''
+```bash
 server {
       listen       80;
       server_name  localhost;
@@ -27,12 +27,12 @@ server {
           stub_status;
       }
     }  
-'''
+```
 
 ### Create NGINX Config 
 To provide the configuration we will create ConfigMap name "nginx-conf"
 
-'''
+```
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
@@ -54,13 +54,13 @@ data:
       }
     }
 EOF
-'''
+```
 
 ### Create NGINX Pod Config
 In the following steps we will create the deployment file step by step for the NGINX Server deployment:
 
 The following configuration 
-'''
+```
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -81,4 +81,4 @@ spec:
           image: nginx
           ports:
             - containerPort: 80
-'''
+```
