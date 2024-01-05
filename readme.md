@@ -15,7 +15,7 @@ In this demo we will create a nginx server in the namespace 'nginx' which will e
 Before deploying the NGINX server we will need to provide a configuration to expose the metrics from the server. The configuration needs to be stored at '/etc/nginx/conf.d/nginx.conf' within the pod.
 
 '''
-    server {
+server {
       listen       80;
       server_name  localhost;
 
