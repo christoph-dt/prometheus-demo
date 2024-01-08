@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-server
-  namespace: nginx
+  namespace: prometheus-demo
 spec:
   selector:
     matchLabels:

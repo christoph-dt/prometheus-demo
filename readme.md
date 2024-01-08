@@ -1,6 +1,6 @@
 # Prometheus Demo 
 
-Creating a demo environment to monitor metric ingestions from Prometheus to Dynatrace. In this example we will create a Nginx Pod which will be monitored
+Creating a demo environment to monitor metric ingestions from Prometheus to Dynatrace. With this example, you will be able to deploy an NGINX pod which will be monitored by a Prometheus exporter and the metrics will be ingested into your Dynatrace environment.
 
 ## Prerequisites
 - Kubernetes Cluster
@@ -13,57 +13,18 @@ Creating a demo environment to monitor metric ingestions from Prometheus to Dyna
 Prometheus is using exporters that provide metrics to an API endpoint. This metrics can be scraped via the Dynatrace Kubernetes API Integration and provided in the Data Explorer. 
 
 ## Deploy Nginx Server with Prometheus Exporter
-In this demo we will create a nginx server in the namespace 'nginx' which will expose its website on Port 80 and NodePort 30007 and the prometheus metrics on port 9113 and NodePort 30008.
+To deploy all our resources needed the namespace "prometheus-demo" will be used throughout this demo. The nginx server will expose its website on Port 80 and NodePort 30007 and the prometheus metrics on port 9113 and NodePort 30008.
 
-Before deploying the NGINX server we will need to provide a configuration to expose the metrics from the server. The configuration needs to be stored at '/etc/nginx/conf.d/nginx.conf' within the pod.
+In order to create the namespace the following command can be used.
+`kubectl create namespace prometheus-demo`
 
-```
-server {
-      listen       80;
-      server_name  localhost;
+In the following steps the NGINX Server deployment file will be created step by step:
 
-      location / {
-          root   /usr/share/nginx/html;
-          index  index.html index.htm;
-      }
-      location /metrics {
-          stub_status;
-      }
-    }  
-```
+### Create NGINX Pod yaml
 
-### Create NGINX Config 
-To provide the configuration we will create ConfigMap name "nginx-conf"
-
-```bash
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-conf
-  namespace: nginx
-data:
-  nginx.conf: |
-    server {
-      listen       80;
-      server_name  localhost;
-
-      location / {
-          root   /usr/share/nginx/html;
-          index  index.html index.htm;
-      }
-      location /metrics {
-          stub_status;
-      }
-    }
-EOF
-```
-
-### Create NGINX Pod Config
-In the following steps we will create the deployment file step by step for the NGINX Server deployment:
-
-We begin with a standard deployment file. To create the structure for the file you can use ``kubectl create deployment nginx-server --image=nginx --replicas=1 --port=80 --dry-run=client -o yaml > nginx.yaml``
-
+To beginn a standard deployment file will be created and stored locally To create the base file structure you can use the following command:
+ ``kubectl create deployment nginx-server --image=nginx --replicas=1 --port=80 --dry-run=client -o yaml > nginx.yaml`
+Here is the output that is stored in the nginx.yaml file:
 ```yml
 apiVersion: apps/v1
 kind: Deployment
@@ -91,18 +52,69 @@ spec:
 status: {}
 ```
 
-As a next step we will mount the NGINX Config from the ConfigMap we created above: 
+### Create NGINX ConfigMap
+
+Before deploying the NGINX server we will need to provide a configuration to expose the metrics from the server. The configuration needs to be stored at '/etc/nginx/conf.d/nginx.conf' within the pod.
+
+```
+server {
+      listen       80;
+      server_name  localhost;
+
+      location / {
+          root   /usr/share/nginx/html;
+          index  index.html index.htm;
+      }
+      location /metrics {
+          stub_status;
+      }
+    }  
+```
+
+
+To provide the configuration a ConfigMap name "nginx-conf" will be created. It will store the configuration mentioned above in nginx.conf. After mounting this configMap in the Pod the file nginx.conf will be available as read-only file in the mounted path.
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: prometheus-demo
+data:
+  nginx.conf: |
+    server {
+      listen       80;
+      server_name  localhost;
+
+      location / {
+          root   /usr/share/nginx/html;
+          index  index.html index.htm;
+      }
+      location /metrics {
+          stub_status;
+      }
+    }
+EOF
+```
+
+### Mount ConfigMap
+As a next step thethe NGINX Config from the ConfigMap above needs to be mounted: 
+
+add the following lines in `.spec.template.spec.containers[nginx]`
 ```yml
             volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/conf.d/
-        
+```
+add the following lines in`.spec.template.spec`
+```yml        
       volumes:
       - name: nginx-config
         configMap: 
           name: nginx-conf
 ```
-
+### Add Prometheus Exporter
 Now the metrics are exposed within the Pod an can be used from prometheus exporter at `http://localhost:80/metrics`. Therefore a NGINX Exporter sidecar container can be added in the `.spec.template.spec.containers` section:
 
 ```yml
@@ -117,7 +129,11 @@ Now the metrics are exposed within the Pod an can be used from prometheus export
           ports:
             - containerPort: 9113
 ```
-as a last step the [dynatrace annotations](https://docs.dynatrace.com/docs/shortlink/monitor-prometheus-metrics#annotate-prometheus-exporter-pods) need to be added. For more details check out the [Dynatrace documentation](https://docs.dynatrace.com/docs/shortlink/monitor-prometheus-metrics)
+### Add Dynatrace Annotations
+
+As a last step the [dynatrace annotations](https://docs.dynatrace.com/docs/shortlink/monitor-prometheus-metrics#annotate-prometheus-exporter-pods) need to be added. For more details check out the [Dynatrace Documentation](https://docs.dynatrace.com/docs/shortlink/monitor-prometheus-metrics)
+
+In this configuration the metrics are provided at http://localhost:9113/metrics and a filter to deny metrics that contain "build".
 
 ```yml
     annotations:
@@ -131,13 +147,13 @@ as a last step the [dynatrace annotations](https://docs.dynatrace.com/docs/short
           "names":["*build*"]
           }
 ```
-Below you can find the entire file combined. Now you can apply this yaml file to your cluster to deploy the nginx server
+Below you can find the entire file combined. Now you can apply this yaml file with `kubectl apply -f nginx.yaml` to your cluster to deploy the nginx server
 ```yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-server
-  namespace: nginx
+  namespace: prometheus-demo
 spec:
   selector:
     matchLabels:
@@ -184,3 +200,11 @@ spec:
 ```
 
 DONE! Now the Prometheus metrics should appear in the Data Explorer within your Dynatrace Environment.
+
+### [Optional] Expose Website and Prometheus metrics
+
+
+
+## Solution
+
+You can find all yaml files described above in the subfolder `solution`.  
