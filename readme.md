@@ -23,7 +23,7 @@ In the following steps the NGINX Server deployment file will be created step by 
 ### Create NGINX Pod yaml
 
 To beginn a standard deployment file will be created and stored locally To create the base file structure you can use the following command:
- ``kubectl create deployment nginx-server --image=nginx --replicas=1 --port=80 --dry-run=client -o yaml > nginx.yaml`
+ ``kubectl create deployment nginx-server --image=nginx -n prometheus-demo --replicas=1 --port=80 --dry-run=client -o yaml > nginx.yaml``
 Here is the output that is stored in the nginx.yaml file:
 ```yml
 apiVersion: apps/v1
@@ -33,6 +33,7 @@ metadata:
   labels:
     app: nginx-server
   name: nginx-server
+  namespace: prometheus-demo
 spec:
   replicas: 1
   selector:
