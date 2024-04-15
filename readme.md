@@ -99,7 +99,7 @@ spec:
 status: {}
 ```
 
-*We will now adapt this file and add additional configurations step by step*
+*We will now adapt this file and add additional configurations step by step.*
 
 ### Mount ConfigMap
 As a next step thethe NGINX Config from the ConfigMap above needs to be mounted: 
