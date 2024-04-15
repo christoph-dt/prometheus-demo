@@ -20,39 +20,6 @@ In order to create the namespace the following command can be used.
 
 In the following steps the NGINX Server deployment file will be created step by step:
 
-### Create NGINX Pod yaml
-
-To beginn a standard deployment file will be created and stored locally To create the base file structure you can use the following command:
- ``kubectl create deployment nginx-server --image=nginx -n prometheus-demo --replicas=1 --port=80 --dry-run=client -o yaml > nginx.yaml``
-Here is the output that is stored in the nginx.yaml file:
-```yml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  creationTimestamp: null
-  labels:
-    app: nginx-server
-  name: nginx-server
-  namespace: prometheus-demo
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: nginx-server
-  strategy: {}
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: nginx-server
-    spec:
-      containers:
-      - image: nginx
-        name: nginx
-        resources: {}
-status: {}
-```
-
 ### Create NGINX ConfigMap
 
 Before deploying the NGINX server we will need to provide a configuration to expose the metrics from the server. The configuration needs to be stored at '/etc/nginx/conf.d/nginx.conf' within the pod.
@@ -98,6 +65,41 @@ data:
     }
 EOF
 ```
+
+### Create NGINX Pod yaml
+
+To beginn a standard deployment file will be created and stored locally To create the base file structure you can use the following command:
+ ``kubectl create deployment nginx-server --image=nginx -n prometheus-demo --replicas=1 --port=80 --dry-run=client -o yaml > nginx.yaml``
+Here is the output that is stored in the nginx.yaml file:
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nginx-server
+  name: nginx-server
+  namespace: prometheus-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-server
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx-server
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}
+```
+
+*We will now adapt this file and add additional configurations step by step*
 
 ### Mount ConfigMap
 As a next step thethe NGINX Config from the ConfigMap above needs to be mounted: 
