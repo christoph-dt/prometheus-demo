@@ -22,7 +22,7 @@ In the following steps the NGINX Server deployment file will be created step by 
 
 ### Create NGINX ConfigMap
 
-Before deploying the NGINX server we will need to provide a configuration to expose the metrics from the server. The configuration needs to be stored at '/etc/nginx/conf.d/nginx.conf' within the pod.
+Before deploying the NGINX server we will need to provide a configuration to expose the metrics from the server. The configuration needs to be stored at '/etc/nginx/conf.d/nginx.conf' within the nginx pod.
 
 ```
 server {
